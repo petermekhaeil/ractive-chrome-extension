@@ -1,0 +1,22 @@
+<html>
+	<head>
+		<title>Ractive Dev Tool</title>
+		<link rel='stylesheet' href='css/panel.css'/>
+		<script src="vendors/ractive.min.js"></script>
+		<script src="scripts/ractive-json-editor.js"></script>
+
+		<script type="text/html" id="mainTemplate">
+			<header>
+				<h1>Selected Component</h1>
+			</header>
+			<section class="content">
+				<JsonEditor root="{{obj}}" editable="true" />
+			</section>
+		</script>
+
+	</head>
+	<body>
+		<div id="main"></div>
+		<script src="scripts/panel.js"></script>
+	</body>
+</html>

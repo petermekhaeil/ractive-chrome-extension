@@ -1,0 +1,20 @@
+{
+  "name": "ractive-chrome-extension",
+  "version": "0.1.0",
+  "description": "View and edit Ractive.js components using Chrome Dev Tools",
+  "author": "Peter Mekhaeil <peter@mekhaeil.com>",
+  "scripts": {
+    "start": "npm install && npm run-script build && npm run-script copy",
+    "build": "npm run-script build:ractive-json-editor",
+    "build:ractive-json-editor": "cd node_modules/ractive-json-editor && npm install && npm run-script build",
+    "clean": "rm -rf vendors && mkdir vendors",
+    "copy": "npm run-script clean && npm run-script copy:ractive && npm run-script copy:ractive-json-editor",
+    "copy:ractive": "cp node_modules/ractive/ractive.min.js vendors/",
+    "copy:ractive-json-editor": "cp node_modules/ractive-json-editor/build/ractive-json-editor.js vendors/"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "ractive": "git://github.com/ractivejs/ractive.git#edge",
+    "ractive-json-editor": "git+https://git@github.com/petermekhaeil/ractive-json-editor.git"
+  }
+}

@@ -1,0 +1,50 @@
+body {
+	font-size: 12px;
+    margin: 0;
+}
+
+h1 {
+    color: #333;
+    font-size: 12px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    margin-bottom: 0;
+}
+
+header {
+    border-bottom: 1px solid #ccc;
+    background-color: #f3f3f3;
+}
+
+section {
+	padding-left: 10px;
+}
+
+/***************** I wont have to do this once I can rebuild ractive-json-editor */
+.obj {
+	border: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+.obj .entry .key {
+	color: rgb(136, 19, 145) !important;
+}
+
+.obj .entry .idx {
+	color: rgb(136, 19, 145) !important;
+}
+
+.obj .entry .num {
+	color: rgb(28, 0, 207) !important;
+}
+.obj .entry .bool {
+	color: rgb(28, 0, 207) !important;
+}
+.obj .entry .str {
+	color: rgb(196, 26, 22) !important;
+}
+.obj .entry .null {
+	color: rgb(128, 128, 128) !important;
+}

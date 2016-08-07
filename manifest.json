@@ -1,0 +1,25 @@
+{
+    "name": "Ractive Dev Tool",
+    "version": "0.1.0",
+    "description": "View and edit Ractive.js components using Chrome Dev Tools",
+    "devtools_page": "devtools.html",
+    "background": {
+        "scripts": [
+            "scripts/background.js"
+        ]
+    },
+    "permissions": [
+        "tabs",
+        "http://*/*",
+        "https://*/*"
+    ],
+    "content_scripts": [
+        {
+          "matches": ["<all_urls>"],
+          "js": ["scripts/content-scripts.js"],
+          "run_at": "document_start"
+        }
+    ],
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+    "manifest_version": 2
+}

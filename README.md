@@ -1,4 +1,4 @@
-# ractive-chrome-extension (WIP)
+# ractive-chrome-extension
 
 ![](http://i.imgur.com/qpo0zSE.png)
 

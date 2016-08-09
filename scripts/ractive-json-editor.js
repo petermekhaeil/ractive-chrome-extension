@@ -98,6 +98,11 @@
         }
         this.set(path, val);
       }
+    },
+    oncomplete: function () {
+      this.observe('root', function (newValue) {
+        this.fire('update', newValue);
+      })
     }
   });
 

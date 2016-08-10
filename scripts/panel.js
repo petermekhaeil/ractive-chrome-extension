@@ -21,7 +21,7 @@ var r = new Ractive({
 			var model = r.get('obj');
 
 			function SetRactiveModel(obj) {
-				var query = "$0._ractive ? $0._ractive.proxy.ractive ? $0._ractive.proxy.ractive.reset(obj) : $0._ractive.root.reset(obj) : false;";
+				var query = "$0._ractive ? $0._ractive.proxy.ractive ? $0._ractive.proxy.ractive.set(obj) : $0._ractive.root.set(obj) : false;";
 				return eval(query);
 			}
 

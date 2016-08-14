@@ -1,6 +1,6 @@
 {
     "name": "Ractive Dev Tool",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "View and edit Ractive.js components using Chrome Dev Tools",
     "author": "Peter Mekhaeil <mekhaeil.peter@gmail.com>",
     "homepage_url": "https://github.com/petermekhaeil/ractive-chrome-extension",

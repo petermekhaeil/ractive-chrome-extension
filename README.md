@@ -20,4 +20,6 @@
 
 ## History
 
- * v0.1 - Initial commit
+ * v0.2.1 - First Chrome Web Store release
+ * v0.2.0 - Live update of ractive data edits
+ * v0.1.0 - Initial commit

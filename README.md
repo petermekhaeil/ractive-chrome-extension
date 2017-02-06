@@ -17,10 +17,3 @@
 ## Dependencies
 
  * JSON editor UI using [Ractive JSON Editor](https://github.com/evs-chris/ractive-json-editor)
-
-## History
-
- * v0.3.0 - Filter data of a function type
- * v0.2.1 - First Chrome Web Store release
- * v0.2.0 - Live update of ractive data edits
- * v0.1.0 - Initial commit

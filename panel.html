@@ -10,7 +10,13 @@
 				<h1>Selected Component</h1>
 			</header>
 			<section class="content">
+				{{#if error}}
+					<p>You have not selected a Ractive component. <br/>
+					Use the Elements window to select a node binded to a Ractive component.</p>
+				{{/if}}
+				{{#if obj}}
 				<JsonEditor root="{{obj}}" editable="true" />
+				{{/if}}
 			</section>
 		</script>
 

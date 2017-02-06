@@ -73,16 +73,29 @@ backgroundPageConnection.onMessage.addListener(function (message) {
 var updateSelectedElement = function () {
 	function GetRactiveObject() {
 		var query = "$0._ractive ? $0._ractive.proxy.ractive ? $0._ractive.proxy.ractive.get() : $0._ractive.root.get($0._ractive.keypath.str) : false;";
-		return eval(query);
+		var ractiveModel = eval(query);
+
+		return Object.keys(ractiveModel).filter(function (key) {
+			return typeof ractiveModel[key] !== 'function';
+		}).reduce(function (accum, key) {
+			return Object.assign(accum, { [key]: ractiveModel[key] });
+		}, {});
 	}
 
 	var run = '(' + GetRactiveObject.toString() + ')()';
 
 	chrome.devtools.inspectedWindow.eval(run, function(results) {
-		if (!results) {
-			results = 'Not a Ractive Element';
+		if (results && Object.keys(results).length) {
+			r.set({
+				'error': false,
+				'obj': results
+			});
+		} else {
+			r.set({
+				'error': true,
+				'obj': null
+			});
 		}
-		r.set('obj', results);
 	});
 };
 

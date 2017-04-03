@@ -4,16 +4,14 @@
 
 ## Installation
 
+Download at [Chrome Web Store](https://chrome.google.com/webstore/detail/ractive-dev-tool/mobaekclikghnakiffjacknpimanblii?hl=en).
+
+## Development
+
  * Open [chrome://extensions](chrome://extensions)
  * Enable 'Developer Mode' checkbox
  * Click 'Load unpacked extensions...'
 
-## Todo
+## Credits
 
- * Add panel to display list of all components found on inspected page
- * Listen to selected component's events
- * What else should this extension do?
-
-## Dependencies
-
- * JSON editor UI using [Ractive JSON Editor](https://github.com/evs-chris/ractive-json-editor)
+ * JSON editor UI using [Ractive JSON Editor](https://github.com/evs-chris/ractive-json-editor).

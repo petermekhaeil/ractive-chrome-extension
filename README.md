@@ -1,10 +1,15 @@
 # ractive-chrome-extension
+View and edit [Ractive.js](https://ractive.js.org/) components using Chrome Dev Tools.
 
 ![](http://i.imgur.com/qpo0zSE.png)
 
 ## Installation
 
 Download at [Chrome Web Store](https://chrome.google.com/webstore/detail/ractive-dev-tool/mobaekclikghnakiffjacknpimanblii?hl=en).
+
+## Supported Versions
+
+<= 0.8
 
 ## Development
 

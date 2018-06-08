@@ -1,4 +1,4 @@
-/* global chrome, console, JsonEditor, Ractive */
+/* global chrome, JsonEditor, Ractive */
 'use strict';
 
 // https://github.com/evs-chris/ractive-json-editor

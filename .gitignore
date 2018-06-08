@@ -1,4 +1,3 @@
 node_modules
-vendors
 *.zip
-npm-debug.log
+*.log

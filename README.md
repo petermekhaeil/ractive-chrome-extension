@@ -9,7 +9,7 @@ Download at [Chrome Web Store](https://chrome.google.com/webstore/detail/ractive
 
 ## Supported Versions
 
-<= 0.8
+<= 0.10.3
 
 ## Development
 

@@ -1,0 +1,430 @@
+<div id="parts">
+<header>
+  <h2>Context</h2>
+</header>
+<section class-info>
+  <p style-text-align="center">
+    <button on-click="~/picking ? @.unpick() : @.pick()" class-primary class-picking="~/picking" on-mouseenter="@.show()" on-mouseleave="@.hide()">Select Context Node</button><br/>
+  </p>
+  {{#if error}}
+    <p>The currently selected node does not belong to a Ractive instance. Inspect an element or use the selection button above to select a node belonging to a Ractive instance.</p>
+  {{else}}
+    <dl>
+      <dt>Keypath</dt><dd>'{{path}}'</dd>
+      <dt>Component</dt><dd>{{instance}}</dd>
+      <dt>Version</dt><dd>{{version}}</dd>
+      <dt>GUID</dt><dd>{{guid}}</dd>
+    </dl>
+      
+    <sub>The current instance is available as <strong>$r</strong>{{#if hasContext}}, and the current context is available as <strong>$c</strong>{{/if}}.</sub>
+  {{/if}}
+</section>
+{{#unless error}}
+  <header>
+    <h2><div class-swap on-click="@.swap()" title="View {{~/instanceData ? 'context' : 'instance'}} data">&#8633;</div> {{#if ~/instanceData}}Ractive Data{{else}}Context Data{{/if}}<div class-refresh on-click="@.refresh()" title="Refresh data">&#8635;</div></h2>
+  </header>
+  <section class-data>
+    <json-editor root="{{obj}}" editable plainkeys preservetoggles="{{~/preserve}}" />
+  </section>
+{{/unless}}
+</div>
+
+<script>
+  import Ractive from 'ractive';
+  import JSONEditor from '@evs-chris/raui/src/JSONEditor.ractive.html';
+  import button from '@evs-chris/raui/src/button.js';
+
+  function setData(key, val, inst) {
+    const el = window.__ractive_dev_el;
+    if (!el || !el._ractive) return false;
+    const ractive = (el._ractive.proxy && el._ractive.proxy.ractive) || el._ractive.root;
+    if (!ractive) return false;
+
+    if (inst) {
+      ractive.set(key.substr(1), val);
+    } else {
+      const ctx = ractive.getContext && ractive.getContext(el);
+      if (ctx) {
+        ctx.set(key, val);
+      } else {
+        const base = el._ractive.keypath.str ? el._ractive.keypath.str + '.' : '';
+        ractive.set(`${base}${key.substr(1)}`, val);
+      }
+    }
+  }
+
+  function getData(inst) {
+    try {
+      const el = window.__ractive_dev_el;
+      if (!el || !el._ractive) return false;
+      const ractive = (el._ractive.proxy && el._ractive.proxy.ractive) || el._ractive.root;
+      if (!ractive) return false;
+
+      const ctx = ractive.getContext && ractive.getContext(el);
+      const path = ctx ? ctx.resolve() : el._ractive.keypath.str;
+      const data = inst ? ractive.get() : (ctx ? ctx.get() : ractive.get(path));
+
+      window.$r = ractive;
+      window.$c = ctx ? ctx : undefined;
+
+      return JSON.stringify({
+        path,
+        data,
+        version: ractive.constructor.VERSION,
+        guid: ractive._guid,
+        name: ractive.component ? `${ractive.component.name} (${ractive.constructor.name})` : ractive.constructor.name,
+        hasContext: !!ctx
+      });
+    } catch (e) {}
+  }
+
+  function contentScript(code, cb) {
+    chrome.devtools.inspectedWindow.eval(code, cb);
+  }
+
+  function contentMessage(ev) {
+    const msg = Object.assign({}, ev, { source: '__ractive_dev', target: 'content' });
+    contentScript(`window.postMessage(${JSON.stringify(msg)}, '*');`);
+  }
+
+  let lock;
+
+  const Panel = Ractive.extend({
+    css: $CSS, template: $TEMPLATE, noCSSTransform: true,
+
+    use: [button(), JSONEditor()],
+
+    data() {
+      return { obj: {} };
+    },
+    on: {
+      'json-editor.init'(ctx, cmp) {
+        this.editor = cmp;
+      }
+    },
+    observe: {
+      'obj.**'(v, o, k) {
+        if (lock) return;
+        lock = true;
+        contentScript(`(${setData})(${JSON.stringify(k.substr(3))}, ${JSON.stringify(v)}, ${this.get('instanceData') || false})`);
+        lock = false;
+      }
+    },
+    pick() {
+      contentMessage({ event: 'pick' });      
+      this.set('picking', true);
+    },
+    unpick() {
+      contentMessage({ event: 'unpick' });
+      this.set('picking', false);
+    },
+    show() {
+      contentMessage({ event: 'show' });
+    },
+    hide() {
+      contentMessage({ event: 'hide' });
+    },
+    refresh() {
+      updateData();
+    },
+    swap() {
+      this.toggle('instanceData');
+      updateData();
+    }
+  });
+
+  // create an instance
+  const panel = new Panel({ target: '#main' });
+
+  function updateSelectedElement() {
+    contentScript(`(${function() {
+      window.__ractive_dev_el = $0;
+    }})()`);
+    
+    updateData();
+  };
+
+  const updateData = function() {
+    if (lock) return;
+    lock = true;
+    const inst = panel.get('instanceData') || false;
+    contentScript(`(${getData})(${inst})`, result => {
+      try {
+        const results = JSON.parse(result);
+        const lastPath = panel.get('path');
+        const lastGuid = panel.get('guid');
+        
+        if ((inst && lastGuid === results.guid) || (!inst && lastGuid === results.guid && lastPath === results.path)) {
+          panel.set('preserve', true);
+        }
+
+        if (results.data) {
+          panel.set({
+            error: false,
+            obj: results.data,
+            path: results.path,
+            version: results.version,
+            instance: results.name,
+            guid: results.guid,
+            hasContext: results.hasContext
+          });
+
+          panel.set('preserve', false);
+        } else {
+          panel.set('error', true);
+        }
+      } catch (e) {
+        panel.set('error', true);
+      }
+      lock = false;
+    });
+  }
+
+  // Create a connection to the background page
+  var backgroundPageConnection = chrome.runtime.connect({
+    name: 'ractive-dev-tool'
+  });
+
+  backgroundPageConnection.postMessage({
+    name: 'init',
+    tabId: chrome.devtools.inspectedWindow.tabId
+  });
+
+  backgroundPageConnection.onMessage.addListener(request => {
+    if (request && typeof request === 'object' && request.event) {
+      switch (request.event) {
+        case 'el':
+          panel.set('picking', false);
+          updateData();
+          break;
+      }
+    }
+  });
+
+  chrome.devtools.panels.elements.onSelectionChanged.addListener(updateSelectedElement);
+  updateSelectedElement();
+
+  function initContentScript() {
+    // content script for communication
+    chrome.tabs.executeScript({
+      code: `(${function() {
+        const listener = ev => {
+          if (ev.source !== window || !ev.data || typeof ev.data !== 'object' || ev.data.source !== '__ractive_dev') return;
+          if (ev.data.target === 'content' && ev.data.event === 'stop') {
+            window.removeEventListener('message', listener);
+          } else if (ev.data.target !== 'content') {
+            try {
+              chrome.runtime.sendMessage(ev.data);
+            } catch (e) {
+              window.removeEventListener('message', listener);
+            }
+          }
+        };
+        window.addEventListener('message', listener);
+      }})()`
+    });
+
+    // install the content message handler
+    contentScript(`(${function() {
+      if (!window.__ractive_dev_listener) {
+        window.__ractive_dev_listener = true;
+        const style = document.createElement('style');
+        style.textContent = `
+          #__ractive_dev {
+            position: absolute;
+            opacity: 0.5;
+            background-color: #00c1ce;
+            pointer-events: none;
+            z-index: 9999999;
+          }
+
+          body.__ractive_dev_pick, body.__ractive_dev_pick * {
+            cursor: crosshair !important;
+          }
+        `;
+        style.setAttribute('id', '__ractive_dev_styles');
+        document.getElementsByTagName('head')[0].appendChild(style);
+
+        const el = document.createElement('div');
+        el.setAttribute('id', '__ractive_dev');
+
+        let target;
+        let picking = false;
+
+        const mouse = function(ev) {
+          if (ev.target === el) return;
+          target = ev.target;
+          const rect = target.getBoundingClientRect();
+          el.style.top = `${rect.top}px`;
+          el.style.left = `${rect.left}px`;
+          el.style.width = `${rect.width}px`;
+          el.style.height = `${rect.height}px`;
+        };
+        const click = function(ev) {
+          picking = false;
+          window.__ractive_dev_el = ev.target;
+          window.postMessage({ source: '__ractive_dev', event: 'el' }, '*');
+          document.body.removeEventListener('click', click, { capture: true });
+          ev.preventDefault();
+          ev.stopPropagation();
+          if (el.parentNode === document.body) document.body.removeChild(el);
+          document.body.classList.remove('__ractive_dev_pick');
+        };
+        document.body.addEventListener('mouseenter', mouse, { capture: true });
+        document.body.addEventListener('click', click, { capture: true });
+        document.body.appendChild(el);
+
+        const listener = ev => {
+          if (ev.source !== window || !ev.data || typeof ev.data !== 'object' || ev.data.source !== '__ractive_dev' || ev.data.target !== 'content') return;
+          switch (ev.data.event) {
+            case 'show':
+              if (window.__ractive_dev_el && !picking) {
+                document.body.appendChild(el);
+                mouse({ target: __ractive_dev_el });
+              }
+              break;
+
+            case 'hide':
+              if (!picking && el.parentNode === document.body) document.body.removeChild(el);
+              break;
+
+            case 'picked':
+              picking = false;
+              document.body.classList.remove('__ractive_dev_pick');
+              break;
+
+            case 'pick':
+              picking = true;
+              document.body.addEventListener('mouseenter', mouse, { capture: true });
+              document.body.addEventListener('click', click, { capture: true });
+              document.body.appendChild(el);
+              document.body.classList.add('__ractive_dev_pick');
+              break;
+            
+            case 'unpick':
+              document.body.removeEventListener('mouseenter', mouse, { capture: true });
+              document.body.removeEventListener('click', click, { capture: true });
+              if (el.parentNode === document.body) document.body.removeChild(el);
+              picking = false;
+              document.body.classList.remove('__ractive_dev_pick');
+              break;
+
+            case 'stop':
+              window.removeEventListener('message', listener);
+              document.body.removeEventListener('mouseenter', mouse, { capture: true });
+              document.body.removeEventListener('click', click, { capture: true });
+              if (el.parentNode === document.body) document.body.removeChild(el);
+              delete window.__ractive_dev_el;
+              delete window.__ractive_dev_listener;
+              style.remove();
+              break;
+          }
+        };
+        window.addEventListener('message', listener)
+      }
+    }})();`);
+  }
+  initContentScript();
+  chrome.webNavigation.onDOMContentLoaded.addListener(details => {
+    if (details.tabId === chrome.devtools.inspectedWindow.tabId && details.frameId === 0) {
+      initContentScript();
+    }
+  })
+
+  Ractive.styleSet('raui.json', {
+    key: 'rgb(136, 19, 145)',
+    index: 'rgb(136, 19, 145)',
+    number: 'rgb(28, 0, 207)',
+    boolean: 'rgb(28, 0, 207)',
+    string: 'rgb(196, 26, 22)',
+    null: 'rgb(128, 128, 128)'
+  });
+</script>
+
+<style>
+  body {
+    font-size: 12px;
+    margin: 0;
+  }
+
+  button.primary {
+    color: #222;
+    background-color: #e2e2e2;
+  }
+
+  button.picking {
+    color: #fff;
+    background-color: #00c1ce;
+  }
+
+  #parts {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+  }
+
+  h2 {
+    color: #333;
+    font-size: 12px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    margin: 0;
+    font-weight: 400;
+  }
+
+  h2 .refresh {
+    cursor: pointer;
+    float: right;
+    font-size: 1.4em;
+    margin-top: -3px;
+  }
+
+  h2 .swap {
+    cursor: pointer;
+    display: inline-block;
+    margin-right: 0.5em;
+  }
+
+  header {
+    border-bottom: 1px solid #ccc;
+    background-color: #f3f3f3;
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+
+  section + header {
+    border-top: 1px solid #ccc;
+  }
+
+  section {
+    padding: 0.5em;
+    overflow: auto;
+  }
+
+  section.info {
+    max-height: 25%;
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+
+  section.data {
+    flex-grow: 10;
+    flex-shrink: 1;
+  }
+
+  dl dd {
+    display: inline;
+    margin: 0;
+  }
+  dl dd:after {
+    display: block;
+    content: '';
+  }
+  dl dt {
+    display: inline-block;
+    font-weight: 600;
+    margin-right: 0.5em;
+  }
+</style>

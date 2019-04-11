@@ -1,25 +1,6 @@
 <html>
 	<head>
-		<title>Ractive Dev Tool</title>
-		<link rel='stylesheet' href='css/panel.css'/>
-		<script src="vendors/ractive.min.js"></script>
-		<script src="vendors/ractive-json-editor.js"></script>
-
-		<script type="text/html" id="mainTemplate">
-			<header>
-				<h1>Selected Component</h1>
-			</header>
-			<section class="content">
-				{{#if error}}
-					<p>You have not selected a Ractive component. <br/>
-					Use the Elements window to select a node binded to a Ractive component.</p>
-				{{/if}}
-				{{#if obj}}
-				<JsonEditor root="{{obj}}" editable="true" />
-				{{/if}}
-			</section>
-		</script>
-
+		<title>Ractive</title>
 	</head>
 	<body>
 		<div id="main"></div>

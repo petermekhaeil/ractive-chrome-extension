@@ -10,7 +10,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@evs-chris/raui": "^0.5.7",
+    "@evs-chris/raui": "^0.5.8",
     "ractive": "^1.3",
     "rollup": "^1.8",
     "rollup-plugin-node-resolve": "^4",

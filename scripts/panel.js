@@ -19645,7 +19645,7 @@
   let lock;
 
   const Panel = Ractive$1.extend({
-    css: " body { font-size: 12px; margin: 0; } button.primary { color: #222; background-color: #e2e2e2; } .picking, button.picking { color: #fff; background-color: #00c1ce; } #parts { display: flex; width: 100%; height: 100%; flex-direction: column; } h2 { color: #333; font-size: 12px; padding-top: 5px; padding-bottom: 5px; padding-left: 10px; margin: 0; font-weight: 400; user-select: none; } h2 .refresh { cursor: pointer; float: right; font-size: 1.4em; margin-top: -3px; } h2 .swap { cursor: pointer; display: inline-block; margin-right: 0.5em; } header { border-bottom: 1px solid #ccc; background-color: #f3f3f3; flex-grow: 0; flex-shrink: 0; } section + header { border-top: 1px solid #ccc; } section { padding: 0.5em; overflow: auto; } section.info { max-height: 25%; flex-grow: 0; flex-shrink: 0; } section.data { flex-grow: 10; flex-shrink: 1; } dl { width: 100%; overflow: auto; display: flex; flex-wrap: wrap; } dl dd { margin: 0; flex-grow: 1; width: 35%; word-break: break-all; flex-shrink: 0; flex-grow: 0; } dl dd.large { width: 85%; } dl dt { width: 15%; min-width: 5em; font-weight: 600; padding-right: 0.5em; flex-shrink: 0; flex-grow: 0; text-align: right; box-sizing: border-box; }", template: {v:4,t:[{t:7,e:"div",m:[{n:"id",f:"parts",t:13,g:1}],f:[{t:7,e:"header",f:[{t:7,e:"h2",f:["Context"]}]}," ",{t:7,e:"section",m:[{t:13,n:"class",f:"info",g:1}],f:[{t:7,e:"p",m:[{t:13,n:"style",f:"text-align: center;",g:1}],f:[{t:7,e:"button",m:[{t:13,n:"class",f:"primary",g:1},{n:["click"],t:70,f:{r:["~/picking","@this"],s:"[_0?_1.unpick():_1.pick()]"}},{n:"class-picking",t:13,f:[{t:2,r:"~/picking"}]},{n:["mouseenter"],t:70,f:{r:["@this"],s:"[_0.show()]"}},{n:["mouseleave"],t:70,f:{r:["@this"],s:"[_0.hide()]"}}],f:["Select Context Node"]},{t:7,e:"br"}]}," ",{t:4,f:[{t:7,e:"p",f:["The currently selected node does not belong to a Ractive instance. Inspect an element or use the selection button above to select a node belonging to a Ractive instance."]}],n:50,r:"error"},{t:4,f:[{t:7,e:"dl",f:[{t:7,e:"dt",f:["Keypath"]},{t:7,e:"dd",m:[{t:13,n:"class",f:"large",g:1}],f:["'",{t:2,r:"path"},"'"]}," ",{t:4,f:[{t:7,e:"dt",f:["Binding"]},{t:7,e:"dd",m:[{t:13,n:"class",f:"large",g:1}],f:["'",{t:2,r:"binding"},"'"]}],n:50,r:"binding"}," ",{t:7,e:"dt",f:["Component"]},{t:7,e:"dd",f:[{t:2,r:"instance"}]}," ",{t:7,e:"dt",f:["Version"]},{t:7,e:"dd",f:[{t:2,r:"version"}]}," ",{t:7,e:"dt",f:["GUID"]},{t:7,e:"dd",f:[{t:2,r:"guid"}]}," ",{t:7,e:"dt",f:["Events"]},{t:7,e:"dd",m:[{n:"title",f:[{t:2,x:{r:["events"],s:"_0.join(\", \")"}}],t:13}],f:[{t:2,r:"events.length"}]}," ",{t:7,e:"dt",f:["Decorators"]},{t:7,e:"dd",m:[{n:"title",f:[{t:2,x:{r:["decorators"],s:"_0.join(\", \")"}}],t:13}],f:[{t:2,r:"decorators.length"}]}]}," ",{t:7,e:"sub",f:["The current instance is available as ",{t:7,e:"strong",f:["$r"]},{t:4,f:[", and the current context is available as ",{t:7,e:"strong",f:["$c"]}],n:50,r:"hasContext"},"."]}],n:51,l:1}]}," ",{t:4,f:[{t:7,e:"header",f:[{t:7,e:"h2",f:[{t:7,e:"div",m:[{t:13,n:"class",f:"swap",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.swap()]"}},{n:"title",f:["View ",{t:2,x:{r:["~/instanceData"],s:"_0?\"context\":\"instance\""}}," data"],t:13}],f:["\u21b9"]}," ",{t:4,f:["Ractive Data"],n:50,r:"~/instanceData"},{t:4,f:["Context Data"],n:51,l:1}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"refresh",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.refresh()]"}},{n:"title",f:"Refresh data",t:13,g:1}],f:["\u21bb"]}," ",{t:7,e:"div",m:[{t:13,n:"style",f:"margin-right: 1em;",g:1},{t:13,n:"class",f:"refresh",g:1},{n:["click"],t:70,f:{r:["~/pathing","@this"],s:"[_0?_1.unpath():_1.path()]"}},{n:"class-picking",t:13,f:[{t:2,r:"~/pathing"}]},{n:"title",f:"Open path at element",t:13,g:1}],f:["\u25ce"]}]}]}," ",{t:7,e:"section",m:[{t:13,n:"class",f:"data",g:1}],f:[{t:7,e:"json-editor",m:[{n:"root",f:[{t:2,r:"obj"}],t:13},{n:"editable",f:0,t:13},{n:"plainkeys",f:0,t:13},{n:"preservetoggles",f:[{t:2,r:"~/preserve"}],t:13}]}]}],n:51,r:"error"}]}],e:{"[_0?_1.unpick():_1.pick()]":function (_0,_1){return([_0?_1.unpick():_1.pick()]);},"[_0.show()]":function (_0){return([_0.show()]);},"[_0.hide()]":function (_0){return([_0.hide()]);},"_0.join(\", \")":function (_0){return(_0.join(", "));},"[_0.swap()]":function (_0){return([_0.swap()]);},"_0?\"context\":\"instance\"":function (_0){return(_0?"context":"instance");},"[_0.refresh()]":function (_0){return([_0.refresh()]);},"[_0?_1.unpath():_1.path()]":function (_0,_1){return([_0?_1.unpath():_1.path()]);}}}, noCSSTransform: true,
+    css: " body { font-size: 12px; font-family: \"Noto Sans\", Roboto, sans-serif; margin: 0; } button.primary { color: #222; background-color: #e2e2e2; } .picking, button.picking { color: #fff; background-color: #00c1ce; } #parts { display: flex; width: 100%; height: 100%; flex-direction: column; } h2 { color: #333; font-size: 12px; padding: 5px 10px; margin: 0; font-weight: 400; user-select: none; } h2 .refresh { cursor: pointer; float: right; font-size: 1.4em; margin-top: -3px; } h2 .swap { cursor: pointer; display: inline-block; margin-right: 0.5em; } header { border-bottom: 1px solid #ccc; background-color: #f3f3f3; flex-grow: 0; flex-shrink: 0; } section + header { border-top: 1px solid #ccc; } section { padding: 0.5em; overflow: auto; } section.info { max-height: 25%; flex-grow: 0; flex-shrink: 0; } section.data { flex-grow: 10; flex-shrink: 1; } dl { width: 100%; overflow: auto; display: flex; flex-wrap: wrap; } dl dd { margin: 0; flex-grow: 1; width: 35%; word-break: break-all; flex-shrink: 0; flex-grow: 0; } dl dd.large { width: 85%; } dl dt { width: 15%; min-width: 5em; font-weight: 600; padding-right: 0.5em; flex-shrink: 0; flex-grow: 0; text-align: right; box-sizing: border-box; }", template: {v:4,t:[{t:7,e:"div",m:[{n:"id",f:"parts",t:13,g:1}],f:[{t:7,e:"header",f:[{t:7,e:"h2",f:["Context"]}]}," ",{t:7,e:"section",m:[{t:13,n:"class",f:"info",g:1}],f:[{t:7,e:"p",m:[{t:13,n:"style",f:"text-align: center;",g:1}],f:[{t:7,e:"button",m:[{t:13,n:"class",f:"primary",g:1},{n:["click"],t:70,f:{r:["~/picking","@this"],s:"[_0?_1.unpick():_1.pick()]"}},{n:"class-picking",t:13,f:[{t:2,r:"~/picking"}]},{n:["mouseenter"],t:70,f:{r:["@this"],s:"[_0.show()]"}},{n:["mouseleave"],t:70,f:{r:["@this"],s:"[_0.hide()]"}}],f:["Select Context Node"]},{t:7,e:"br"}]}," ",{t:4,f:[{t:7,e:"p",f:["The currently selected node does not belong to a Ractive instance. Inspect an element or use the selection button above to select a node belonging to a Ractive instance."]}],n:50,r:"error"},{t:4,f:[{t:7,e:"dl",f:[{t:7,e:"dt",f:["Keypath"]},{t:7,e:"dd",m:[{t:13,n:"class",f:"large",g:1}],f:["'",{t:2,r:"path"},"'"]}," ",{t:4,f:[{t:7,e:"dt",f:["Binding"]},{t:7,e:"dd",m:[{t:13,n:"class",f:"large",g:1}],f:["'",{t:2,r:"binding"},"'"]}],n:50,r:"binding"}," ",{t:7,e:"dt",f:["Component"]},{t:7,e:"dd",f:[{t:2,r:"instance"}]}," ",{t:7,e:"dt",f:["Version"]},{t:7,e:"dd",f:[{t:2,r:"version"}]}," ",{t:7,e:"dt",f:["GUID"]},{t:7,e:"dd",f:[{t:2,r:"guid"}]}," ",{t:7,e:"dt",f:["Events"]},{t:7,e:"dd",f:[{t:4,f:[{t:2,x:{r:["events"],s:"_0.join(\", \")"}}],n:50,r:"events.length"},{t:4,f:[{t:7,e:"em",f:["(none)"]}],n:51,l:1}]}," ",{t:7,e:"dt",f:["Decorators"]},{t:7,e:"dd",f:[{t:4,f:[{t:2,x:{r:["decorators"],s:"_0.join(\", \")"}}],n:50,r:"decorators.length"},{t:4,f:[{t:7,e:"em",f:["(none)"]}],n:51,l:1}]}]}," ",{t:7,e:"sub",f:["The current instance is available as ",{t:7,e:"strong",f:["$r"]},{t:4,f:[", and the current context is available as ",{t:7,e:"strong",f:["$c"]}],n:50,r:"hasContext"},"."]}],n:51,l:1}]}," ",{t:4,f:[{t:7,e:"header",f:[{t:7,e:"h2",f:[{t:7,e:"div",m:[{t:13,n:"class",f:"swap",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.swap()]"}},{n:"title",f:["View ",{t:2,x:{r:["~/instanceData"],s:"_0?\"context\":\"instance\""}}," data"],t:13}],f:["\u21b9"]}," ",{t:4,f:["Ractive Data"],n:50,r:"~/instanceData"},{t:4,f:["Context Data"],n:51,l:1}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"refresh",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.refresh()]"}},{n:"title",f:"Refresh data",t:13,g:1}],f:["\u21bb"]}," ",{t:7,e:"div",m:[{t:13,n:"style",f:"margin-right: 1em;",g:1},{t:13,n:"class",f:"refresh",g:1},{n:["click"],t:70,f:{r:["~/pathing","@this"],s:"[_0?_1.unpath():_1.path()]"}},{n:"class-picking",t:13,f:[{t:2,r:"~/pathing"}]},{n:"title",f:"Open path at element",t:13,g:1}],f:["\u25ce"]}]}]}," ",{t:7,e:"section",m:[{t:13,n:"class",f:"data",g:1}],f:[{t:7,e:"json-editor",m:[{n:"root",f:[{t:2,r:"obj"}],t:13},{n:"editable",f:0,t:13},{n:"plainkeys",f:0,t:13},{n:"preservetoggles",f:[{t:2,r:"~/preserve"}],t:13}]}]}],n:51,r:"error"}]}],e:{"[_0?_1.unpick():_1.pick()]":function (_0,_1){return([_0?_1.unpick():_1.pick()]);},"[_0.show()]":function (_0){return([_0.show()]);},"[_0.hide()]":function (_0){return([_0.hide()]);},"_0.join(\", \")":function (_0){return(_0.join(", "));},"[_0.swap()]":function (_0){return([_0.swap()]);},"_0?\"context\":\"instance\"":function (_0){return(_0?"context":"instance");},"[_0.refresh()]":function (_0){return([_0.refresh()]);},"[_0?_1.unpath():_1.path()]":function (_0,_1){return([_0?_1.unpath():_1.path()]);}}}, noCSSTransform: true,
 
     use: [plugin$1(), plugin()],
 
@@ -19753,6 +19753,10 @@
           panel.set('pathing', false);
           panel.editor.openPath(request.path);
           break;
+        
+        case 'navigated':
+          initContentScript();
+          break;
       }
     }
   });
@@ -19760,26 +19764,14 @@
   chrome.devtools.panels.elements.onSelectionChanged.addListener(updateSelectedElement);
   updateSelectedElement();
 
-  function initContentScript() {
-    // content script for communication
-    chrome.tabs.executeScript({
-      code: `(${function() {
-      const listener = ev => {
-        if (ev.source !== window || !ev.data || typeof ev.data !== 'object' || ev.data.source !== '__ractive_dev') return;
-        if (ev.data.target === 'content' && ev.data.event === 'stop') {
-          window.removeEventListener('message', listener);
-        } else if (ev.data.target !== 'content') {
-          try {
-            chrome.runtime.sendMessage(ev.data);
-          } catch (e) {
-            window.removeEventListener('message', listener);
-          }
-        }
-      };
-      window.addEventListener('message', listener);
-    }})()`
-    });
+  // content script for communication
+  backgroundPageConnection.postMessage({
+    name: 'initContentScript',
+    tabId: chrome.devtools.inspectedWindow.tabId
+  });
 
+  function initContentScript() {
+    panel.set('error', true);
     // install the content message handler
     contentScript(`(${function() {
     if (!window.__ractive_dev_listener) {
@@ -19824,9 +19816,8 @@
       }
 
       const mouse = function(ev) {
-        if (ev.target === el) return;
-        target = document.querySelectorAll(':hover');
-        target = target[target.length - 1];
+        if (ev.target === el || ev.pageX === undefined || ev.pageY === undefined) return;
+        target = document.elementFromPoint(ev.pageX - window.scrollX, ev.pageY - window.scrollY);
         if (!target) return;
         const rect = target.getBoundingClientRect();
         el.style.top = `${rect.top + window.scrollY}px`;
@@ -19899,16 +19890,14 @@
       function captureMouse(click) {
         document.body.addEventListener('click', preventDefault, { capture: true });
         document.body.addEventListener('pointerup', click, { capture: true });
-        document.body.addEventListener('pointerenter', mouse, { capture: true });
-        document.body.addEventListener('pointerleave', mouse, { capture: true });
+        document.body.addEventListener('pointermove', mouse, { capture: true, passive: true });
         document.body.addEventListener('pointerdown', stopPropagation, { capture: true });
       }
 
       function releaseMouse(click) {
         document.body.removeEventListener('click', preventDefault, { capture: true });
         document.body.removeEventListener('pointerup', click, { capture: true });
-        document.body.removeEventListener('pointerenter', mouse, { capture: true });
-        document.body.removeEventListener('pointerleave', mouse, { capture: true });
+        document.body.removeEventListener('pointermove', mouse, { capture: true, passive: true });
         document.body.removeEventListener('pointerdown', stopPropagation, { capture: true });
       }
 
@@ -20126,11 +20115,6 @@
   }})();`);
   }
   initContentScript();
-  chrome.webNavigation.onDOMContentLoaded.addListener(details => {
-    if (details.tabId === chrome.devtools.inspectedWindow.tabId && details.frameId === 0) {
-      initContentScript();
-    }
-  });
 
   Ractive$1.styleSet('raui.json', {
     key: 'rgb(136, 19, 145)',

@@ -226,8 +226,14 @@
         }
 
         const mouse = function(ev) {
-          if (ev.target === el || ev.pageX === undefined || ev.pageY === undefined) return;
-          target = document.elementFromPoint(ev.pageX - window.scrollX, ev.pageY - window.scrollY);
+          if (ev.target === el) return;
+          let target = ev.target;
+          if (ev.pageX !== undefined && ev.pageY !== undefined) {
+            target = document.elementFromPoint(ev.pageX - window.scrollX, ev.pageY - window.scrollY);
+          } else if (!ev.manual) {
+            return;
+          }
+
           if (!target) return;
           const rect = target.getBoundingClientRect();
           el.style.top = `${rect.top + window.scrollY}px`;
@@ -240,7 +246,7 @@
           picking = false;
 
           if (ev.target !== window.__ractive_dev_el) {
-            window.__ractive_dev_el = ev.target;
+            target = window.__ractive_dev_el = ev.target;
             getInfo();
           }
 
@@ -452,7 +458,7 @@
               case 'show':
                 if (window.__ractive_dev_el && !picking) {
                   document.body.appendChild(el);
-                  mouse({ target: __ractive_dev_el });
+                  mouse({ target: __ractive_dev_el, manual: true });
                 }
                 break;
 

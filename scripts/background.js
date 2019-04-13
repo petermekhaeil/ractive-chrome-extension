@@ -20,7 +20,9 @@ chrome.runtime.onConnect.addListener(port => {
         chrome.tabs.executeScript(message.tabId, {
           code: `(${function() {
             const listener = ev => {
-              if (ev.source !== window || !ev.data || typeof ev.data !== 'object' || ev.data.source !== '__ractive_dev') return;
+              if (!ev.isTrusted || !ev.data || typeof ev.data !== 'object' || ev.data.source !== '__ractive_dev') {
+                return;
+              }
               if (ev.data.target === 'content' && ev.data.event === 'stop') {
                 window.removeEventListener('message', listener);
               } else if (ev.data.target !== 'content') {
@@ -41,6 +43,14 @@ chrome.runtime.onConnect.addListener(port => {
       return;
     } else if (message.name === 'initContentScript') {
       listener.init();
+    } else if (message.name === 'frames') {
+      chrome.webNavigation.getAllFrames({ tabId: message.tabId }, frames => {
+        const res = [];
+        for (const frame of frames) {
+          if (frame.parentFrameId >= 0 && !res.includes(frame.url)) res.push(frame.url);
+        }
+        port.postMessage({ event: 'targetFrames', frames: res });
+      });
     }
   }
 

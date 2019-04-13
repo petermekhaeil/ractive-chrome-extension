@@ -19633,8 +19633,12 @@
     };
   }
 
-  function contentScript(code, cb) {
-    chrome.devtools.inspectedWindow.eval(code, cb);
+  function contentScript(...args) {
+    try {
+      chrome.devtools.inspectedWindow.eval.apply(chrome.devtools.inspectedWindow, args);
+    } catch (ex) {
+      console.error(ex);
+    }
   }
 
   function contentMessage(ev) {
@@ -19650,7 +19654,7 @@
     use: [plugin$1(), plugin()],
 
     data() {
-      return { obj: {}, events: [], decorators: [] };
+      return { obj: {}, events: [], decorators: [], error: true };
     },
     on: {
       'json-editor.init'(ctx, cmp) {
@@ -19738,13 +19742,16 @@
           } else {
             panel.set('error', true);
           }
+          contentMessage({ event: 'picked' });
           break;
         
         case 'data':
           lock = true;
           if (request.observed) panel.set('preserve', true);
-          if (request.data) panel.set('obj', request.data);
-          else panel.set('error', true);
+          if (request.data) {
+            panel.set('obj', request.data);
+            panel.set('error', false);
+          } else panel.set('error', true);
           panel.set('preserve', false);
           lock = false;
           break;
@@ -19756,6 +19763,10 @@
         
         case 'navigated':
           initContentScript();
+          break;
+        
+        case 'targetFrames':
+          initAllContentScripts(request.frames);
           break;
       }
     }
@@ -19771,25 +19782,39 @@
   });
 
   function initContentScript() {
-    panel.set('error', true);
-    // install the content message handler
-    contentScript(`(${function() {
+    //panel.set('error', true);
+    backgroundPageConnection.postMessage({
+      name: 'frames',
+      tabId: chrome.devtools.inspectedWindow.tabId
+    });
+  }
+
+  function initAllContentScripts(frames) {
+    contentScript(`(${scripyForContent})();`);
+    for (const frame of frames) {
+      // install the content message handler
+      contentScript(`(${scripyForContent})();`, { frameURL: frame });
+    }
+  }
+  initContentScript();
+
+  function scripyForContent() {
     if (!window.__ractive_dev_listener) {
       window.__ractive_dev_listener = true;
       const style = document.createElement('style');
       style.textContent = `
-        #__ractive_dev {
-          position: absolute;
-          opacity: 0.5;
-          background-color: #00c1ce;
-          pointer-events: none;
-          z-index: 9999999;
-        }
+      #__ractive_dev {
+        position: absolute;
+        opacity: 0.5;
+        background-color: #00c1ce;
+        pointer-events: none;
+        z-index: 9999999;
+      }
 
-        body.__ractive_dev_pick, body.__ractive_dev_pick * {
-          cursor: crosshair !important;
-        }
-      `;
+      body.__ractive_dev_pick, body.__ractive_dev_pick * {
+        cursor: crosshair !important;
+      }
+    `;
       style.setAttribute('id', '__ractive_dev_styles');
       document.getElementsByTagName('head')[0].appendChild(style);
 
@@ -19812,8 +19837,37 @@
 
       function extMessage(ev) {
         const msg = Object.assign({}, ev, { source: '__ractive_dev' });
-        window.postMessage(msg, '*');
+        let root = window;
+        // find the root window
+        while (root !== root.parent) root = root.parent;
+        root.postMessage(msg, '*');
       }
+
+      // watch for child frames
+      let frames = [];
+      for (const frame of document.querySelectorAll('iframe')) {
+        frames.push(frame);
+        frame.addEventListener('load', () => {
+          extMessage({ event: 'navigated' });
+        });
+      }
+      const mutation = new MutationObserver(debounce(() => {
+        const list = document.querySelectorAll('iframe');
+        const next = [];
+        let hit = false;
+        for (const frame of list) {
+          if (!frames.includes(frame)) {
+            hit = true;
+            frame.addEventListener('load', () => {
+              extMessage({ event: 'navigated' });
+            });
+          }
+          next.push(frame);
+        }
+        frames = next;
+        if (hit) extMessage({ event: 'navigated' });
+      }, 300));
+      mutation.observe(document.body, { subtree: true, childList: true });
 
       const mouse = function(ev) {
         if (ev.target === el) return;
@@ -19825,11 +19879,24 @@
         }
 
         if (!target) return;
+        else if (target.nodeName === 'IFRAME') {
+          el.remove();
+          return;
+        }
+
+        if (!el.parentNode) document.body.appendChild(el);
+        
         const rect = target.getBoundingClientRect();
         el.style.top = `${rect.top + window.scrollY}px`;
         el.style.left = `${rect.left + window.scrollX}px`;
         el.style.width = `${rect.width}px`;
         el.style.height = `${rect.height}px`;
+      };
+
+      const mouseout = function(ev) {
+        if (!ev.relatedTarget || ev.relatedTarget.nodeName === 'HTML' || ev.relatedTarget.nodeName === 'IFRAME') {
+          el.remove();
+        }
       };
 
       const clickContext = function(ev) {
@@ -19843,7 +19910,7 @@
         setTimeout(() => releaseMouse(clickContext));          
         ev.preventDefault();
         ev.stopPropagation();
-        if (el.parentNode === document.body) document.body.removeChild(el);
+        el.remove();
         document.body.classList.remove('__ractive_dev_pick');
       };
 
@@ -19880,7 +19947,7 @@
         setTimeout(() => releaseMouse(clickContext));
         ev.preventDefault();
         ev.stopPropagation();
-        if (el.parentNode === document.body) document.body.removeChild(el);
+        el.remove();
         document.body.classList.remove('__ractive_dev_pick');
       };
 
@@ -19898,6 +19965,7 @@
         document.body.addEventListener('pointerup', click, { capture: true });
         document.body.addEventListener('pointermove', mouse, { capture: true, passive: true });
         document.body.addEventListener('pointerdown', stopPropagation, { capture: true });
+        document.addEventListener('mouseout', mouseout);
       }
 
       function releaseMouse(click) {
@@ -19905,6 +19973,7 @@
         document.body.removeEventListener('pointerup', click, { capture: true });
         document.body.removeEventListener('pointermove', mouse, { capture: true, passive: true });
         document.body.removeEventListener('pointerdown', stopPropagation, { capture: true });
+        document.removeEventListener('mouseout', mouseout);
       }
 
       // get an array of event names from an element template
@@ -19972,7 +20041,7 @@
           window.$c = undefined;
           window.__ractive_dev_el = undefined;
           reobserve();
-          extMessage({ event: 'el', info: false });
+          if (window.__ractive_dev_el) extMessage({ event: 'el', info: false });
         }
       }
 
@@ -20019,19 +20088,19 @@
         if (inst) {
           if (window.$r) {
             window.$r.observe('', () => {
-              if (lock) return;
+              if (lock || !window.$r) return;
               dataObserved(window.$r.get());
             }, { init: false });
           }
         } else {
           if (window.$c) {
             window.$c.observe('', () => {
-              if (lock) return;
+              if (lock || !window.$c) return;
               dataObserved(window.$c.get());
             }, { init: false });
           } else if (window.$r) {
             window.$r.observe(window.__ractive_dev_el._ractive.keypath.str, () => {
-              if (lock) return;
+              if (lock || !window.$r) return;
               dataObserved(window.$r.get(window.__ractive_dev_el._ractive.keypath.str));
             }, { init: false });
           }
@@ -20039,7 +20108,7 @@
       }
 
       const listener = ev => {
-        if (ev.source !== window || !ev.data || typeof ev.data !== 'object' || ev.data.source !== '__ractive_dev') return;
+        if ((ev.source !== window && ev.source !== window.parent) || !ev.data || typeof ev.data !== 'object' || ev.data.source !== '__ractive_dev') return;
         
         // events from extension
         if (ev.data.target === 'content') {
@@ -20055,11 +20124,6 @@
               if (!picking && el.parentNode === document.body) document.body.removeChild(el);
               break;
 
-            case 'picked':
-              picking = false;
-              document.body.classList.remove('__ractive_dev_pick');
-              break;
-
             case 'pick':
               picking = true;
               captureMouse(clickContext);
@@ -20069,19 +20133,35 @@
             
             case 'unpick':
               releaseMouse(clickContext);
-              if (el.parentNode === document.body) document.body.removeChild(el);
+              el.remove();
               picking = false;
               document.body.classList.remove('__ractive_dev_pick');
+              break;
+            
+            case 'picked':
+              // if some other frame handled the pick, stop doing the things here
+              if (picking) {
+                picking = false;
+                releaseMouse(clickContext);
+                document.body.removeEventListener('pointerup', clickPath, { capture: true });
+                document.body.classList.remove('__ractive_dev_pick');
+                el.remove();
+                window.$r = undefined;
+                window.$c = undefined;
+                window.__ractive_dev_el = undefined;
+                reobserve();
+              }
               break;
 
             case 'stop':
               window.removeEventListener('message', listener);
               releaseMouse(clickContext);
               document.body.removeEventListener('pointerup', clickPath, { capture: true });
-              if (el.parentNode === document.body) document.body.removeChild(el);
+              el.remove();
               delete window.__ractive_dev_el;
               delete window.__ractive_dev_listener;
               style.remove();
+              mutation.disconnect();
               break;
             
             case 'get':
@@ -20109,18 +20189,21 @@
             
             case 'unpath':
               releaseMouse(clickPath);
-              if (el.parentNode === document.body) document.body.removeChild(el);
+              el.remove();
               picking = false;
               document.body.classList.remove('__ractive_dev_pick');
               break;
+          }
+
+          // let my frames know
+          for (frame of frames) {
+            frame.contentWindow.postMessage(ev.data, '*');
           }
         }
       };
       window.addEventListener('message', listener);
     }
-  }})();`);
   }
-  initContentScript();
 
   Ractive$1.styleSet('raui.json', {
     key: 'rgb(136, 19, 145)',

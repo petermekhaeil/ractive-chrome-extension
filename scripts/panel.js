@@ -19724,6 +19724,7 @@
     if (request && typeof request === 'object' && request.event) {
       switch (request.event) {
         case 'el':
+          const picking = panel.get('picking');
           panel.set('picking', false);
           if (request.info) {
             const info = request.info;
@@ -19738,7 +19739,6 @@
               decorators: info.decorators,
               binding: info.binding
             });
-            contentMessage({ event: 'get' });
           } else {
             panel.set('error', true);
           }
@@ -19751,7 +19751,9 @@
           if (request.data) {
             panel.set('obj', request.data);
             panel.set('error', false);
-          } else panel.set('error', true);
+          } else {
+            panel.set('error', true);
+          }
           panel.set('preserve', false);
           lock = false;
           break;
@@ -19763,6 +19765,8 @@
         
         case 'navigated':
           initContentScript();
+          panel.set('error', true);
+          contentMessage({ event: 'info' });
           break;
         
         case 'targetFrames':
@@ -19878,8 +19882,7 @@
           return;
         }
 
-        if (!target) return;
-        else if (target.nodeName === 'IFRAME') {
+        if (!target || target.nodeName === 'IFRAME') {
           el.remove();
           return;
         }
@@ -20033,6 +20036,11 @@
               decorators: target._ractive.proxy.decorator ? [target._ractive.proxy.template.o] : target._ractive.proxy.decorators ? target._ractive.proxy.decorators.map(d => d.name) : [],
               binding
             } });
+
+            extMessage({
+              event: 'data',
+              data: JSON.parse(JSON.stringify(getData()))
+            });
           }
         }
 
@@ -20041,7 +20049,11 @@
           window.$c = undefined;
           window.__ractive_dev_el = undefined;
           reobserve();
-          if (window.__ractive_dev_el) extMessage({ event: 'el', info: false });
+          if (window.__ractive_dev_el) {
+            extMessage({ event: 'el', info: false });
+          }
+        } else {
+          return true;
         }
       }
 
@@ -20126,8 +20138,8 @@
 
             case 'pick':
               picking = true;
+              mouse({ target: window.__ractive_dev_el, manual: true });
               captureMouse(clickContext);
-              document.body.appendChild(el);
               document.body.classList.add('__ractive_dev_pick');
               break;
             
@@ -20167,17 +20179,18 @@
             case 'get':
               inst = event.data.inst;
               reobserve();
-              extMessage({ event: 'data', data: JSON.parse(JSON.stringify(getData())) });
+              if (window.__ractive_dev_el) extMessage({ event: 'data', data: JSON.parse(JSON.stringify(getData())) });
               break;
 
             case 'set':
+              if (!window.__ractive_dev_el) break;
               lock = true;
               setData(event.data.key, event.data.val);
               lock = false;
               break;
             
             case 'info':
-              getInfo();
+              if (getInfo()) return;
               break;
             
             case 'path':

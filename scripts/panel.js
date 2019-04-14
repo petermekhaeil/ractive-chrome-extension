@@ -19362,6 +19362,33 @@
 
       return false;
     }
+
+    openPath(str) {
+      if (str && typeof str === 'string') {
+        const path = Ractive$1.splitKeypath(str);
+        path.reduce((a, c) => {
+          const path = a + '\\.' + c;
+          this.set(path, true);
+          return path;
+        }, 'toggles.root');
+        this.set('toggles.root', true);
+      }
+    }
+
+    closePath(str, toRoot) {
+      if (str && typeof str === 'string') {
+        if (toRoot) {
+          const path = Ractive$1.splitKeypath(str);
+          path.reduce((a, c) => {
+            const path = a + '\\.' + c;
+            this.set(path, false);
+            return path;
+          }, 'toggles.root');
+        } else {
+          this.set('toggles.root\\.' + Ractive$1.escapeKey(str), false);
+        }
+      }
+    }
   }
 
   Ractive$1.extendWith(JSONEditor, {
@@ -19606,52 +19633,12 @@
     };
   }
 
-  function setData(key, val, inst) {
-    const el = window.__ractive_dev_el;
-    if (!el || !el._ractive) return false;
-    const ractive = (el._ractive.proxy && el._ractive.proxy.ractive) || el._ractive.root;
-    if (!ractive) return false;
-
-    if (inst) {
-      ractive.set(key.substr(1), val);
-    } else {
-      const ctx = ractive.getContext && ractive.getContext(el);
-      if (ctx) {
-        ctx.set(key, val);
-      } else {
-        const base = el._ractive.keypath.str ? el._ractive.keypath.str + '.' : '';
-        ractive.set(`${base}${key.substr(1)}`, val);
-      }
-    }
-  }
-
-  function getData(inst) {
+  function contentScript(...args) {
     try {
-      const el = window.__ractive_dev_el;
-      if (!el || !el._ractive) return false;
-      const ractive = (el._ractive.proxy && el._ractive.proxy.ractive) || el._ractive.root;
-      if (!ractive) return false;
-
-      const ctx = ractive.getContext && ractive.getContext(el);
-      const path = ctx ? ctx.resolve() : el._ractive.keypath.str;
-      const data = inst ? ractive.get() : (ctx ? ctx.get() : ractive.get(path));
-
-      window.$r = ractive;
-      window.$c = ctx ? ctx : undefined;
-
-      return JSON.stringify({
-        path,
-        data,
-        version: ractive.constructor.VERSION,
-        guid: ractive._guid,
-        name: ractive.component ? `${ractive.component.name} (${ractive.constructor.name})` : ractive.constructor.name,
-        hasContext: !!ctx
-      });
-    } catch (e) {}
-  }
-
-  function contentScript(code, cb) {
-    chrome.devtools.inspectedWindow.eval(code, cb);
+      chrome.devtools.inspectedWindow.eval.apply(chrome.devtools.inspectedWindow, args);
+    } catch (ex) {
+      console.error(ex);
+    }
   }
 
   function contentMessage(ev) {
@@ -19662,12 +19649,12 @@
   let lock;
 
   const Panel = Ractive$1.extend({
-    css: " body { font-size: 12px; margin: 0; } button.primary { color: #222; background-color: #e2e2e2; } button.picking { color: #fff; background-color: #00c1ce; } #parts { display: flex; width: 100%; height: 100%; flex-direction: column; } h2 { color: #333; font-size: 12px; padding-top: 5px; padding-bottom: 5px; padding-left: 10px; margin: 0; font-weight: 400; } h2 .refresh { cursor: pointer; float: right; font-size: 1.4em; margin-top: -3px; } h2 .swap { cursor: pointer; display: inline-block; margin-right: 0.5em; } header { border-bottom: 1px solid #ccc; background-color: #f3f3f3; flex-grow: 0; flex-shrink: 0; } section + header { border-top: 1px solid #ccc; } section { padding: 0.5em; overflow: auto; } section.info { max-height: 25%; flex-grow: 0; flex-shrink: 0; } section.data { flex-grow: 10; flex-shrink: 1; } dl dd { display: inline; margin: 0; } dl dd:after { display: block; content: ''; } dl dt { display: inline-block; font-weight: 600; margin-right: 0.5em; }", template: {v:4,t:[{t:7,e:"div",m:[{n:"id",f:"parts",t:13,g:1}],f:[{t:7,e:"header",f:[{t:7,e:"h2",f:["Context"]}]}," ",{t:7,e:"section",m:[{t:13,n:"class",f:"info",g:1}],f:[{t:7,e:"p",m:[{t:13,n:"style",f:"text-align: center;",g:1}],f:[{t:7,e:"button",m:[{t:13,n:"class",f:"primary",g:1},{n:["click"],t:70,f:{r:["~/picking","@this"],s:"[_0?_1.unpick():_1.pick()]"}},{n:"class-picking",t:13,f:[{t:2,r:"~/picking"}]},{n:["mouseenter"],t:70,f:{r:["@this"],s:"[_0.show()]"}},{n:["mouseleave"],t:70,f:{r:["@this"],s:"[_0.hide()]"}}],f:["Select Context Node"]},{t:7,e:"br"}]}," ",{t:4,f:[{t:7,e:"p",f:["The currently selected node does not belong to a Ractive instance. Inspect an element or use the selection button above to select a node belonging to a Ractive instance."]}],n:50,r:"error"},{t:4,f:[{t:7,e:"dl",f:[{t:7,e:"dt",f:["Keypath"]},{t:7,e:"dd",f:["'",{t:2,r:"path"},"'"]}," ",{t:7,e:"dt",f:["Component"]},{t:7,e:"dd",f:[{t:2,r:"instance"}]}," ",{t:7,e:"dt",f:["Version"]},{t:7,e:"dd",f:[{t:2,r:"version"}]}," ",{t:7,e:"dt",f:["GUID"]},{t:7,e:"dd",f:[{t:2,r:"guid"}]}]}," ",{t:7,e:"sub",f:["The current instance is available as ",{t:7,e:"strong",f:["$r"]},{t:4,f:[", and the current context is available as ",{t:7,e:"strong",f:["$c"]}],n:50,r:"hasContext"},"."]}],n:51,l:1}]}," ",{t:4,f:[{t:7,e:"header",f:[{t:7,e:"h2",f:[{t:7,e:"div",m:[{t:13,n:"class",f:"swap",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.swap()]"}},{n:"title",f:["View ",{t:2,x:{r:["~/instanceData"],s:"_0?\"context\":\"instance\""}}," data"],t:13}],f:["\u21b9"]}," ",{t:4,f:["Ractive Data"],n:50,r:"~/instanceData"},{t:4,f:["Context Data"],n:51,l:1},{t:7,e:"div",m:[{t:13,n:"class",f:"refresh",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.refresh()]"}},{n:"title",f:"Refresh data",t:13,g:1}],f:["\u21bb"]}]}]}," ",{t:7,e:"section",m:[{t:13,n:"class",f:"data",g:1}],f:[{t:7,e:"json-editor",m:[{n:"root",f:[{t:2,r:"obj"}],t:13},{n:"editable",f:0,t:13},{n:"plainkeys",f:0,t:13},{n:"preservetoggles",f:[{t:2,r:"~/preserve"}],t:13}]}]}],n:51,r:"error"}]}],e:{"[_0?_1.unpick():_1.pick()]":function (_0,_1){return([_0?_1.unpick():_1.pick()]);},"[_0.show()]":function (_0){return([_0.show()]);},"[_0.hide()]":function (_0){return([_0.hide()]);},"[_0.swap()]":function (_0){return([_0.swap()]);},"_0?\"context\":\"instance\"":function (_0){return(_0?"context":"instance");},"[_0.refresh()]":function (_0){return([_0.refresh()]);}}}, noCSSTransform: true,
+    css: " body { font-size: 12px; font-family: \"Noto Sans\", Roboto, sans-serif; margin: 0; } button.primary { color: #222; background-color: #e2e2e2; } .picking, button.picking { color: #fff; background-color: #00c1ce; } #parts { display: flex; width: 100%; height: 100%; flex-direction: column; } h2 { color: #333; font-size: 12px; padding: 5px 10px; margin: 0; font-weight: 400; user-select: none; } h2 .refresh { cursor: pointer; float: right; font-size: 1.4em; margin-top: -3px; } h2 .swap { cursor: pointer; display: inline-block; margin-right: 0.5em; } header { border-bottom: 1px solid #ccc; background-color: #f3f3f3; flex-grow: 0; flex-shrink: 0; } section + header { border-top: 1px solid #ccc; } section { padding: 0.5em; overflow: auto; } section.info { max-height: 25%; flex-grow: 0; flex-shrink: 0; } section.data { flex-grow: 10; flex-shrink: 1; } dl { width: 100%; overflow: auto; display: flex; flex-wrap: wrap; } dl dd { margin: 0; flex-grow: 1; width: 35%; word-break: break-all; flex-shrink: 0; flex-grow: 0; } dl dd.large { width: 85%; } dl dt { width: 15%; min-width: 5em; font-weight: 600; padding-right: 0.5em; flex-shrink: 0; flex-grow: 0; text-align: right; box-sizing: border-box; }", template: {v:4,t:[{t:7,e:"div",m:[{n:"id",f:"parts",t:13,g:1}],f:[{t:7,e:"header",f:[{t:7,e:"h2",f:["Context"]}]}," ",{t:7,e:"section",m:[{t:13,n:"class",f:"info",g:1}],f:[{t:7,e:"p",m:[{t:13,n:"style",f:"text-align: center;",g:1}],f:[{t:7,e:"button",m:[{t:13,n:"class",f:"primary",g:1},{n:["click"],t:70,f:{r:["~/picking","@this"],s:"[_0?_1.unpick():_1.pick()]"}},{n:"class-picking",t:13,f:[{t:2,r:"~/picking"}]},{n:["mouseenter"],t:70,f:{r:["@this"],s:"[_0.show()]"}},{n:["mouseleave"],t:70,f:{r:["@this"],s:"[_0.hide()]"}}],f:["Select Context Node"]},{t:7,e:"br"}]}," ",{t:4,f:[{t:7,e:"p",f:["The currently selected node does not belong to a Ractive instance. Inspect an element or use the selection button above to select a node belonging to a Ractive instance."]}],n:50,r:"error"},{t:4,f:[{t:7,e:"dl",f:[{t:7,e:"dt",f:["Keypath"]},{t:7,e:"dd",m:[{t:13,n:"class",f:"large",g:1}],f:["'",{t:2,r:"path"},"'"]}," ",{t:4,f:[{t:7,e:"dt",f:["Binding"]},{t:7,e:"dd",m:[{t:13,n:"class",f:"large",g:1}],f:["'",{t:2,r:"binding"},"'"]}],n:50,r:"binding"}," ",{t:7,e:"dt",f:["Component"]},{t:7,e:"dd",f:[{t:2,r:"instance"}]}," ",{t:7,e:"dt",f:["Version"]},{t:7,e:"dd",f:[{t:2,r:"version"}]}," ",{t:7,e:"dt",f:["GUID"]},{t:7,e:"dd",f:[{t:2,r:"guid"}]}," ",{t:7,e:"dt",f:["Events"]},{t:7,e:"dd",f:[{t:4,f:[{t:2,x:{r:["events"],s:"_0.join(\", \")"}}],n:50,r:"events.length"},{t:4,f:[{t:7,e:"em",f:["(none)"]}],n:51,l:1}]}," ",{t:7,e:"dt",f:["Decorators"]},{t:7,e:"dd",f:[{t:4,f:[{t:2,x:{r:["decorators"],s:"_0.join(\", \")"}}],n:50,r:"decorators.length"},{t:4,f:[{t:7,e:"em",f:["(none)"]}],n:51,l:1}]}]}," ",{t:7,e:"sub",f:["The current instance is available as ",{t:7,e:"strong",f:["$r"]},{t:4,f:[", and the current context is available as ",{t:7,e:"strong",f:["$c"]}],n:50,r:"hasContext"},"."]}],n:51,l:1}]}," ",{t:4,f:[{t:7,e:"header",f:[{t:7,e:"h2",f:[{t:7,e:"div",m:[{t:13,n:"class",f:"swap",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.swap()]"}},{n:"title",f:["View ",{t:2,x:{r:["~/instanceData"],s:"_0?\"context\":\"instance\""}}," data"],t:13}],f:["\u21b9"]}," ",{t:4,f:["Ractive Data"],n:50,r:"~/instanceData"},{t:4,f:["Context Data"],n:51,l:1}," ",{t:7,e:"div",m:[{t:13,n:"class",f:"refresh",g:1},{n:["click"],t:70,f:{r:["@this"],s:"[_0.refresh()]"}},{n:"title",f:"Refresh data",t:13,g:1}],f:["\u21bb"]}," ",{t:7,e:"div",m:[{t:13,n:"style",f:"margin-right: 1em;",g:1},{t:13,n:"class",f:"refresh",g:1},{n:["click"],t:70,f:{r:["~/pathing","@this"],s:"[_0?_1.unpath():_1.path()]"}},{n:"class-picking",t:13,f:[{t:2,r:"~/pathing"}]},{n:"title",f:"Open path at element",t:13,g:1}],f:["\u25ce"]}]}]}," ",{t:7,e:"section",m:[{t:13,n:"class",f:"data",g:1}],f:[{t:7,e:"json-editor",m:[{n:"root",f:[{t:2,r:"obj"}],t:13},{n:"editable",f:0,t:13},{n:"plainkeys",f:0,t:13},{n:"preservetoggles",f:[{t:2,r:"~/preserve"}],t:13}]}]}],n:51,r:"error"}]}],e:{"[_0?_1.unpick():_1.pick()]":function (_0,_1){return([_0?_1.unpick():_1.pick()]);},"[_0.show()]":function (_0){return([_0.show()]);},"[_0.hide()]":function (_0){return([_0.hide()]);},"_0.join(\", \")":function (_0){return(_0.join(", "));},"[_0.swap()]":function (_0){return([_0.swap()]);},"_0?\"context\":\"instance\"":function (_0){return(_0?"context":"instance");},"[_0.refresh()]":function (_0){return([_0.refresh()]);},"[_0?_1.unpath():_1.path()]":function (_0,_1){return([_0?_1.unpath():_1.path()]);}}}, noCSSTransform: true,
 
     use: [plugin$1(), plugin()],
 
     data() {
-      return { obj: {} };
+      return { obj: {}, events: [], decorators: [], error: true };
     },
     on: {
       'json-editor.init'(ctx, cmp) {
@@ -19678,7 +19665,7 @@
       'obj.**'(v, o, k) {
         if (lock) return;
         lock = true;
-        contentScript(`(${setData})(${JSON.stringify(k.substr(3))}, ${JSON.stringify(v)}, ${this.get('instanceData') || false})`);
+        contentMessage({ event: 'set', key: k.substr(3), val: v });
         lock = false;
       }
     },
@@ -19697,60 +19684,32 @@
       contentMessage({ event: 'hide' });
     },
     refresh() {
-      updateData();
+      contentMessage({ event: 'get', inst: this.get('instanceData') });
     },
     swap() {
       this.toggle('instanceData');
-      updateData();
+      contentMessage({ event: 'get', inst: this.get('instanceData') });
+    },
+    path() {
+      contentMessage({ event: 'path' });
+      this.set('pathing', true);
+    },
+    unpath() {
+      contentMessage({ event: 'unpath' });
+      this.set('pathing', false);
     }
   });
 
   // create an instance
-  const panel = new Panel({ target: '#main' });
+  const panel = window.app = new Panel({ target: '#main' });
 
   function updateSelectedElement() {
     contentScript(`(${function() {
     window.__ractive_dev_el = $0;
   }})()`);
     
-    updateData();
+    contentMessage({ event: 'info' });
   }
-  const updateData = function() {
-    if (lock) return;
-    lock = true;
-    const inst = panel.get('instanceData') || false;
-    contentScript(`(${getData})(${inst})`, result => {
-      try {
-        const results = JSON.parse(result);
-        const lastPath = panel.get('path');
-        const lastGuid = panel.get('guid');
-        
-        if ((inst && lastGuid === results.guid) || (!inst && lastGuid === results.guid && lastPath === results.path)) {
-          panel.set('preserve', true);
-        }
-
-        if (results.data) {
-          panel.set({
-            error: false,
-            obj: results.data,
-            path: results.path,
-            version: results.version,
-            instance: results.name,
-            guid: results.guid,
-            hasContext: results.hasContext
-          });
-
-          panel.set('preserve', false);
-        } else {
-          panel.set('error', true);
-        }
-      } catch (e) {
-        panel.set('error', true);
-      }
-      lock = false;
-    });
-  };
-
   // Create a connection to the background page
   var backgroundPageConnection = chrome.runtime.connect({
     name: 'ractive-dev-tool'
@@ -19765,8 +19724,53 @@
     if (request && typeof request === 'object' && request.event) {
       switch (request.event) {
         case 'el':
+          const picking = panel.get('picking');
           panel.set('picking', false);
-          updateData();
+          if (request.info) {
+            const info = request.info;
+            panel.set({
+              error: false,
+              path: info.path,
+              version: info.version,
+              instance: info.name,
+              guid: info.guid,
+              hasContext: info.hasContext,
+              events: info.events,
+              decorators: info.decorators,
+              binding: info.binding
+            });
+          } else {
+            panel.set('error', true);
+          }
+          contentMessage({ event: 'picked' });
+          break;
+        
+        case 'data':
+          lock = true;
+          if (request.observed) panel.set('preserve', true);
+          if (request.data) {
+            panel.set('obj', request.data);
+            panel.set('error', false);
+          } else {
+            panel.set('error', true);
+          }
+          panel.set('preserve', false);
+          lock = false;
+          break;
+
+        case 'path':
+          panel.set('pathing', false);
+          panel.editor.openPath(request.path);
+          break;
+        
+        case 'navigated':
+          initContentScript();
+          panel.set('error', true);
+          contentMessage({ event: 'info' });
+          break;
+        
+        case 'targetFrames':
+          initAllContentScripts(request.frames);
           break;
       }
     }
@@ -19775,44 +19779,46 @@
   chrome.devtools.panels.elements.onSelectionChanged.addListener(updateSelectedElement);
   updateSelectedElement();
 
-  function initContentScript() {
-    // content script for communication
-    chrome.tabs.executeScript({
-      code: `(${function() {
-      const listener = ev => {
-        if (ev.source !== window || !ev.data || typeof ev.data !== 'object' || ev.data.source !== '__ractive_dev') return;
-        if (ev.data.target === 'content' && ev.data.event === 'stop') {
-          window.removeEventListener('message', listener);
-        } else if (ev.data.target !== 'content') {
-          try {
-            chrome.runtime.sendMessage(ev.data);
-          } catch (e) {
-            window.removeEventListener('message', listener);
-          }
-        }
-      };
-      window.addEventListener('message', listener);
-    }})()`
-    });
+  // content script for communication
+  backgroundPageConnection.postMessage({
+    name: 'initContentScript',
+    tabId: chrome.devtools.inspectedWindow.tabId
+  });
 
-    // install the content message handler
-    contentScript(`(${function() {
+  function initContentScript() {
+    //panel.set('error', true);
+    backgroundPageConnection.postMessage({
+      name: 'frames',
+      tabId: chrome.devtools.inspectedWindow.tabId
+    });
+  }
+
+  function initAllContentScripts(frames) {
+    contentScript(`(${scripyForContent})();`);
+    for (const frame of frames) {
+      // install the content message handler
+      contentScript(`(${scripyForContent})();`, { frameURL: frame });
+    }
+  }
+  initContentScript();
+
+  function scripyForContent() {
     if (!window.__ractive_dev_listener) {
       window.__ractive_dev_listener = true;
       const style = document.createElement('style');
       style.textContent = `
-        #__ractive_dev {
-          position: absolute;
-          opacity: 0.5;
-          background-color: #00c1ce;
-          pointer-events: none;
-          z-index: 9999999;
-        }
+      #__ractive_dev {
+        position: absolute;
+        opacity: 0.5;
+        background-color: #00c1ce;
+        pointer-events: none;
+        z-index: 9999999;
+      }
 
-        body.__ractive_dev_pick, body.__ractive_dev_pick * {
-          cursor: crosshair !important;
-        }
-      `;
+      body.__ractive_dev_pick, body.__ractive_dev_pick * {
+        cursor: crosshair !important;
+      }
+    `;
       style.setAttribute('id', '__ractive_dev_styles');
       document.getElementsByTagName('head')[0].appendChild(style);
 
@@ -19820,87 +19826,397 @@
       el.setAttribute('id', '__ractive_dev');
 
       let target;
-      let picking = false;
+      let picking = false, inst = false, lock = false;
+
+      function debounce(fn, time, target) {
+        let tm;
+        return function(...args) {
+          if (tm) clearTimeout(tm);
+          tm = setTimeout(() => {
+            tm = 0;
+            fn.apply(target, args);
+          }, time);
+        }
+      }
+
+      function extMessage(ev) {
+        const msg = Object.assign({}, ev, { source: '__ractive_dev' });
+        let root = window;
+        // find the root window
+        while (root !== root.parent) root = root.parent;
+        root.postMessage(msg, '*');
+      }
+
+      // watch for child frames
+      let frames = [];
+      for (const frame of document.querySelectorAll('iframe')) {
+        frames.push(frame);
+        frame.addEventListener('load', () => {
+          extMessage({ event: 'navigated' });
+        });
+      }
+      const mutation = new MutationObserver(debounce(() => {
+        const list = document.querySelectorAll('iframe');
+        const next = [];
+        let hit = false;
+        for (const frame of list) {
+          if (!frames.includes(frame)) {
+            hit = true;
+            frame.addEventListener('load', () => {
+              extMessage({ event: 'navigated' });
+            });
+          }
+          next.push(frame);
+        }
+        frames = next;
+        if (hit) extMessage({ event: 'navigated' });
+      }, 300));
+      mutation.observe(document.body, { subtree: true, childList: true });
 
       const mouse = function(ev) {
         if (ev.target === el) return;
-        target = ev.target;
+        let target = ev.target;
+        if (ev.pageX !== undefined && ev.pageY !== undefined) {
+          target = document.elementFromPoint(ev.pageX - window.scrollX, ev.pageY - window.scrollY);
+        } else if (!ev.manual) {
+          return;
+        }
+
+        if (!target || target.nodeName === 'IFRAME') {
+          el.remove();
+          return;
+        }
+
+        if (!el.parentNode) document.body.appendChild(el);
+        
         const rect = target.getBoundingClientRect();
-        el.style.top = `${rect.top}px`;
-        el.style.left = `${rect.left}px`;
+        el.style.top = `${rect.top + window.scrollY}px`;
+        el.style.left = `${rect.left + window.scrollX}px`;
         el.style.width = `${rect.width}px`;
         el.style.height = `${rect.height}px`;
       };
-      const click = function(ev) {
+
+      const mouseout = function(ev) {
+        if (!ev.relatedTarget || ev.relatedTarget.nodeName === 'HTML' || ev.relatedTarget.nodeName === 'IFRAME') {
+          el.remove();
+        }
+      };
+
+      const clickContext = function(ev) {
         picking = false;
-        window.__ractive_dev_el = ev.target;
-        window.postMessage({ source: '__ractive_dev', event: 'el' }, '*');
-        document.body.removeEventListener('click', click, { capture: true });
+
+        if (ev.target !== window.__ractive_dev_el) {
+          target = window.__ractive_dev_el = ev.target;
+          getInfo();
+        }
+
+        setTimeout(() => releaseMouse(clickContext));          
         ev.preventDefault();
         ev.stopPropagation();
-        if (el.parentNode === document.body) document.body.removeChild(el);
+        el.remove();
         document.body.classList.remove('__ractive_dev_pick');
       };
-      document.body.addEventListener('mouseenter', mouse, { capture: true });
-      document.body.addEventListener('click', click, { capture: true });
-      document.body.appendChild(el);
+
+      const clickPath = function(ev) {
+        picking = false;
+
+        let sent = false;
+
+        if (ev.target._ractive) {
+          const target = ev.target;
+          const ractive = (target._ractive.proxy && target._ractive.proxy.ractive) || target._ractive.root;
+          if (ractive) {
+            const ctx = ractive.getContext && ractive.getContext(target);
+            let path = ctx ? ctx.resolve('.', window.$r) : target._ractive.keypath.str;
+            if (path) {
+              sent = true;
+
+              // handle context prefix
+              if (!inst) {
+                const _el = window.__ractive_dev_el;
+                const _ractive = (_el._ractive.proxy && _el._ractive.proxy.ractive) || _el._ractive.root;
+                const _ctx = ractive.getContext && ractive.getContext(_el);
+                const _path = _ctx ? _ctx.resolve('.', window.$r) : _el._ractive.keypath.str;
+                path = path.replace(_path, '');
+                if (path[0] === '.') path = path.substr(1);
+              }
+              extMessage({ event: 'path', path });
+            }
+          }
+        }
+
+        if (!sent) extMessage({ event: 'path', path: '' });
+
+        setTimeout(() => releaseMouse(clickContext));
+        ev.preventDefault();
+        ev.stopPropagation();
+        el.remove();
+        document.body.classList.remove('__ractive_dev_pick');
+      };
+
+      function stopPropagation(ev) {
+        ev.stopPropagation();
+      }
+
+      function preventDefault(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+
+      function captureMouse(click) {
+        document.body.addEventListener('click', preventDefault, { capture: true });
+        document.body.addEventListener('pointerup', click, { capture: true });
+        document.body.addEventListener('pointermove', mouse, { capture: true, passive: true });
+        document.body.addEventListener('pointerdown', stopPropagation, { capture: true });
+        document.addEventListener('mouseout', mouseout);
+      }
+
+      function releaseMouse(click) {
+        document.body.removeEventListener('click', preventDefault, { capture: true });
+        document.body.removeEventListener('pointerup', click, { capture: true });
+        document.body.removeEventListener('pointermove', mouse, { capture: true, passive: true });
+        document.body.removeEventListener('pointerdown', stopPropagation, { capture: true });
+        document.removeEventListener('mouseout', mouseout);
+      }
+
+      // get an array of event names from an element template
+      function findEvents(e) {
+        if (e && e.v) return Object.keys(e.v) || [];
+        else if (e && e.e && e.m) {
+          return e.m.reduce((a, c) => {
+            if (c.t === 70) a.push.apply(a, c.n);
+            else {
+              const fs = findEvents(a.f);
+              if (fs) a.push.apply(a, fs);
+            }
+            return a;
+          }, []);
+        } else if (Array.isArray(e)) {
+          return e.reduce((a, c) => {
+            if (c.t === 70) a.push.apply(c.n);
+            else {
+              const fs = findEvents(a.f);
+              if (fs) a.push.apply(a, fs);
+            }
+            return a;
+          }, []);
+        }
+
+        return [];
+      }
+
+      function getInfo() {
+        const target = window.__ractive_dev_el;
+        
+        let sent = false;
+        if (target && target._ractive) {
+          const ractive = (target._ractive.proxy && target._ractive.proxy.ractive) || target._ractive.root;
+          if (ractive) {
+            const ctx = ractive.getContext && ractive.getContext(target);
+            const path = ctx ? ctx.resolve() : target._ractive.keypath.str;
+            
+            window.$r = ractive;
+            window.$c = ctx ? ctx : undefined;
+
+            let binding = false;
+            if (target._ractive.proxy.binding) {
+              const bnd = target._ractive.proxy.binding;
+              if (bnd.keypath) binding = bnd.keypath.str;
+              else if (bnd.model) binding = bnd.model.getKeypath();
+            }
+
+            sent = true;
+            extMessage({ event: 'el', info: {
+              path,
+              version: ractive.constructor.VERSION,
+              guid: ractive._guid,
+              name: ractive.component ? `${ractive.component.name} (${ractive.constructor.name})` : ractive.constructor.name,
+              hasContext: !!ctx,
+              events: findEvents(target._ractive.proxy.template),
+              decorators: target._ractive.proxy.decorator ? [target._ractive.proxy.template.o] : target._ractive.proxy.decorators ? target._ractive.proxy.decorators.map(d => d.name) : [],
+              binding
+            } });
+
+            extMessage({
+              event: 'data',
+              data: JSON.parse(JSON.stringify(getData()))
+            });
+          }
+        }
+
+        if (!sent) {
+          window.$r = undefined;
+          window.$c = undefined;
+          window.__ractive_dev_el = undefined;
+          reobserve();
+          if (window.__ractive_dev_el) {
+            extMessage({ event: 'el', info: false });
+          }
+        } else {
+          return true;
+        }
+      }
+
+      function getData() {
+        let data = false;
+        if (inst) {
+          if (window.$r) data = window.$r.get();
+        } else {
+          if (window.$c) data = window.$c.get();
+          else if (window.$r) {
+            data = window.$r.get(window.__ractive_dev_el._ractive.keypath.str);
+          }
+        }
+
+        try {
+          // need computeds to be added to older flavors of ractive
+          if (data && !window.$c && window.$r && (inst || !window.__ractive_dev_el._ractive.keypath.str)) {
+            Object.keys(window.$r.viewmodel.computations).filter(k => !~k.indexOf('$')).forEach(k => {
+              data[k] = window.$r.viewmodel.computations[k].value;
+            });
+          }
+        } catch (e) {}
+
+        return data;
+      }
+
+      function setData(key, val) {
+        if (inst) {
+          window.$r.set(key.substr(1), val);
+        } else {
+          if (window.$c) return window.$c.set(key, val);
+          else if (window.$r) {
+            const path = window.__ractive_dev_el._ractive.keypath.str;
+            window.$r.set(path ? path + key : key.substr(1), val);
+          }
+        }
+      }
+
+      const dataObserved = debounce(data => {
+        extMessage({ event: 'data', data: JSON.parse(JSON.stringify(data)), observed: true });
+      }, 300);
+
+      function reobserve() {
+        if (inst) {
+          if (window.$r) {
+            window.$r.observe('', () => {
+              if (lock || !window.$r) return;
+              dataObserved(window.$r.get());
+            }, { init: false });
+          }
+        } else {
+          if (window.$c) {
+            window.$c.observe('', () => {
+              if (lock || !window.$c) return;
+              dataObserved(window.$c.get());
+            }, { init: false });
+          } else if (window.$r) {
+            window.$r.observe(window.__ractive_dev_el._ractive.keypath.str, () => {
+              if (lock || !window.$r) return;
+              dataObserved(window.$r.get(window.__ractive_dev_el._ractive.keypath.str));
+            }, { init: false });
+          }
+        }
+      }
 
       const listener = ev => {
-        if (ev.source !== window || !ev.data || typeof ev.data !== 'object' || ev.data.source !== '__ractive_dev' || ev.data.target !== 'content') return;
-        switch (ev.data.event) {
-          case 'show':
-            if (window.__ractive_dev_el && !picking) {
+        if ((ev.source !== window && ev.source !== window.parent) || !ev.data || typeof ev.data !== 'object' || ev.data.source !== '__ractive_dev') return;
+        
+        // events from extension
+        if (ev.data.target === 'content') {
+          switch (ev.data.event) {
+            case 'show':
+              if (window.__ractive_dev_el && !picking) {
+                document.body.appendChild(el);
+                mouse({ target: __ractive_dev_el, manual: true });
+              }
+              break;
+
+            case 'hide':
+              if (!picking && el.parentNode === document.body) document.body.removeChild(el);
+              break;
+
+            case 'pick':
+              picking = true;
+              mouse({ target: window.__ractive_dev_el, manual: true });
+              captureMouse(clickContext);
+              document.body.classList.add('__ractive_dev_pick');
+              break;
+            
+            case 'unpick':
+              releaseMouse(clickContext);
+              el.remove();
+              picking = false;
+              document.body.classList.remove('__ractive_dev_pick');
+              break;
+            
+            case 'picked':
+              // if some other frame handled the pick, stop doing the things here
+              if (picking) {
+                picking = false;
+                releaseMouse(clickContext);
+                document.body.removeEventListener('pointerup', clickPath, { capture: true });
+                document.body.classList.remove('__ractive_dev_pick');
+                el.remove();
+                window.$r = undefined;
+                window.$c = undefined;
+                window.__ractive_dev_el = undefined;
+                reobserve();
+              }
+              break;
+
+            case 'stop':
+              window.removeEventListener('message', listener);
+              releaseMouse(clickContext);
+              document.body.removeEventListener('pointerup', clickPath, { capture: true });
+              el.remove();
+              delete window.__ractive_dev_el;
+              delete window.__ractive_dev_listener;
+              style.remove();
+              mutation.disconnect();
+              break;
+            
+            case 'get':
+              inst = event.data.inst;
+              reobserve();
+              if (window.__ractive_dev_el) extMessage({ event: 'data', data: JSON.parse(JSON.stringify(getData())) });
+              break;
+
+            case 'set':
+              if (!window.__ractive_dev_el) break;
+              lock = true;
+              setData(event.data.key, event.data.val);
+              lock = false;
+              break;
+            
+            case 'info':
+              if (getInfo()) return;
+              break;
+            
+            case 'path':
+              picking = true;
+              captureMouse(clickPath);
               document.body.appendChild(el);
-              mouse({ target: __ractive_dev_el });
-            }
-            break;
+              document.body.classList.add('__ractive_dev_pick');
+              break;
+            
+            case 'unpath':
+              releaseMouse(clickPath);
+              el.remove();
+              picking = false;
+              document.body.classList.remove('__ractive_dev_pick');
+              break;
+          }
 
-          case 'hide':
-            if (!picking && el.parentNode === document.body) document.body.removeChild(el);
-            break;
-
-          case 'picked':
-            picking = false;
-            document.body.classList.remove('__ractive_dev_pick');
-            break;
-
-          case 'pick':
-            picking = true;
-            document.body.addEventListener('mouseenter', mouse, { capture: true });
-            document.body.addEventListener('click', click, { capture: true });
-            document.body.appendChild(el);
-            document.body.classList.add('__ractive_dev_pick');
-            break;
-          
-          case 'unpick':
-            document.body.removeEventListener('mouseenter', mouse, { capture: true });
-            document.body.removeEventListener('click', click, { capture: true });
-            if (el.parentNode === document.body) document.body.removeChild(el);
-            picking = false;
-            document.body.classList.remove('__ractive_dev_pick');
-            break;
-
-          case 'stop':
-            window.removeEventListener('message', listener);
-            document.body.removeEventListener('mouseenter', mouse, { capture: true });
-            document.body.removeEventListener('click', click, { capture: true });
-            if (el.parentNode === document.body) document.body.removeChild(el);
-            delete window.__ractive_dev_el;
-            delete window.__ractive_dev_listener;
-            style.remove();
-            break;
+          // let my frames know
+          for (frame of frames) {
+            frame.contentWindow.postMessage(ev.data, '*');
+          }
         }
       };
       window.addEventListener('message', listener);
     }
-  }})();`);
   }
-  initContentScript();
-  chrome.webNavigation.onDOMContentLoaded.addListener(details => {
-    if (details.tabId === chrome.devtools.inspectedWindow.tabId && details.frameId === 0) {
-      initContentScript();
-    }
-  });
 
   Ractive$1.styleSet('raui.json', {
     key: 'rgb(136, 19, 145)',

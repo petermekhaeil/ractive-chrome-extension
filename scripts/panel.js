@@ -20039,7 +20039,7 @@
 
             extMessage({
               event: 'data',
-              data: JSON.parse(JSON.stringify(getData()))
+              data: JSON.parse(customStringify(getData()))
             });
           }
         }
@@ -20093,7 +20093,7 @@
       }
 
       const dataObserved = debounce(data => {
-        extMessage({ event: 'data', data: JSON.parse(JSON.stringify(data)), observed: true });
+        extMessage({ event: 'data', data: JSON.parse(customStringify(data)), observed: true });
       }, 300);
 
       function reobserve() {
@@ -20179,7 +20179,7 @@
             case 'get':
               inst = event.data.inst;
               reobserve();
-              if (window.__ractive_dev_el) extMessage({ event: 'data', data: JSON.parse(JSON.stringify(getData())) });
+              if (window.__ractive_dev_el) extMessage({ event: 'data', data: JSON.parse(customStringify(getData())) });
               break;
 
             case 'set':
@@ -20215,6 +20215,28 @@
         }
       };
       window.addEventListener('message', listener);
+
+      function customStringify(v) {
+      var cache = new Set();
+      return JSON.stringify(v, function (key, value) {
+        if (typeof value === 'object' && value !== null) {
+          if (cache.has(value)) {
+            // Circular reference found
+            try {
+              // If this value does not reference a parent it can be deduped
+            return JSON.parse(JSON.stringify(value));
+            }
+            catch (err) {
+              // discard key if value cannot be deduped
+            return;
+            }
+          }
+          // Store value in our set
+          cache.add(value);
+        }
+        return value;
+      });
+      };
     }
   }
 
